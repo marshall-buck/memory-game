@@ -1,9 +1,35 @@
-/* you can add to or change this. */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-#game div {
+#game {
   border: 1px solid black;
-  width: 100px;
-  height: 100px;
-  margin: 20px;
-  display: inline-block;
+  width: 80%;
+  display: flex;
+  gap: 1rem;
+}
+.card {
+  width: 50px;
+  height: 70px;
+}
+
+.red {
+  background-color: red;
+}
+.blue {
+  background-color: blue;
+}
+.green {
+  background-color: green;
+}
+.orange {
+  background-color: orange;
+}
+.purple {
+  background-color: purple;
+}
+.off {
+  background-color: black;
 }

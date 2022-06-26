@@ -42,24 +42,32 @@ function createCards(colors) {
   const gameBoard = document.getElementById("game");
 
   for (let color of colors) {
-    // missing code here ...
+    const card = document.createElement('div');
+    card.classList = `card off ${color}`;
+    card.addEventListener('click', handleCardClick);
+    gameBoard.append(card);
   }
 }
 
-/** Flip a card face-up. */
+/** Flip a card face-up.
+ *make sure only one other card is 'on'
+ */
 
 function flipCard(card) {
-  // ... you need to write this ...
+  card.toggle('off');
 }
 
-/** Flip a card face-down. */
+/** Flip a card face-down.
+ make sure no other cards are 'on'
+ */
 
 function unFlipCard(card) {
-  // ... you need to write this ...
+  card.toggle('off');
 }
 
 /** Handle clicking on a card: this could be first-card or second-card. */
 
 function handleCardClick(evt) {
-  // ... you need to write this ...
+  const card = evt.target;
+  console.log(card);
 }
