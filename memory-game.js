@@ -12,6 +12,8 @@ const colors = shuffle(COLORS);
 
 createCards(colors);
 
+let firstCardFlipped;
+let activeCards = 0;
 
 /** Shuffle array items in-place and return shuffled array. */
 
@@ -40,10 +42,11 @@ function shuffle(items) {
 
 function createCards(colors) {
   const gameBoard = document.getElementById("game");
-
+  let count = 0;
   for (let color of colors) {
     const card = document.createElement('div');
     card.classList = `card off ${color}`;
+    card.id = count++;
     card.addEventListener('click', handleCardClick);
     gameBoard.append(card);
   }
@@ -54,20 +57,88 @@ function createCards(colors) {
  */
 
 function flipCard(card) {
-  card.toggle('off');
+
+
+
+  card.classList.toggle('off');
+  activeCards++;
+
+
+
+
 }
 
 /** Flip a card face-down.
- make sure no other cards are 'on'
+ the only time the card is un-flipped dis when there is no match
  */
 
 function unFlipCard(card) {
-  card.toggle('off');
+  card.classList.toggle('off');
+
+
 }
 
 /** Handle clicking on a card: this could be first-card or second-card. */
 
 function handleCardClick(evt) {
   const card = evt.target;
-  console.log(card);
+  if (!isCardOff(card) || activeCards === 2) {
+    return;
+  }
+  else {
+    flipCard(card);
+
+    //  is there a currentCard ie. is this the second card flipped
+    if (activeCards === 2) {
+      console.log(firstCardFlipped.classList, card.classList);
+      if (firstCardFlipped.classList.value === card.classList.value) {
+        // a match occurred
+        card.classList.add('match');
+        const first = document.getElementById(firstCardFlipped.id);
+        first.classList.add('match');
+        firstCardFlipped = undefined;
+        console.log('match found');
+        if (isEndOfGame()) {
+          setTimeout(() => {
+            window.alert('You win');
+          }, 500);
+
+        } else { firstCardFlipped = undefined; activeCards = 0; }
+      } else {
+        setTimeout(() => {
+          unFlipCard(card);
+          unFlipCard(firstCardFlipped);
+          firstCardFlipped = undefined;
+          activeCards = 0;
+
+        }, 1000);
+
+        return;
+      }
+
+    } else {
+      // flipCard(card);
+      firstCardFlipped = card;
+      console.log(firstCardFlipped);
+    }
+  }
+
+
+}
+
+
+function returnAllCards() {
+  return document.querySelectorAll('.card');
+}
+
+function isCardOff(card) {
+  if (card.classList.contains('off')) return true;
+  return false;
+}
+function isEndOfGame() {
+
+  for (let card of returnAllCards()) {
+    if (card.classList.contains('off')) return false;
+  }
+  return true;
 }
