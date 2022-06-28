@@ -169,9 +169,7 @@ function handleCardClick(evt) {
 }
 
 
-// function returnAllCards() {
-//   return document.querySelectorAll('.card');
-// }
+
 
 function isCardOff(card) {
   if (card.classList.contains('off')) return true;

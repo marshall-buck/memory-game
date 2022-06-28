@@ -15,13 +15,13 @@ h1 {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-image: url(pexels-pixabay-210779.jpg);
+  background-image: url(image-10.jpg);
   background-repeat: no-repeat;
   background-size: cover;
 }
 .blur {
   -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px) brightness(75%);
+  backdrop-filter: blur(8px) brightness(50%);
   width: 100%;
   height: 100%;
   display: flex;
