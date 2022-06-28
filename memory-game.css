@@ -40,6 +40,9 @@ h1 {
   align-items: center;
   padding: 1rem;
   border-radius: 6px;
+
+  opacity: 0;
+  transition: all 1s ease;
 }
 .card {
   width: 100px;
@@ -49,24 +52,48 @@ h1 {
   justify-content: center;
   align-items: center;
   border-radius: 6px;
-  /* border: 3px solid red; */
   background-color: white;
   cursor: pointer;
 }
 
 .card p {
   font-size: 72px;
+  user-select: none;
 }
 
 .off {
   background-color: rgb(240, 17, 17);
   transition: all 0.4s ease-in-out;
 }
+.controls {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
 .controls p {
   font-size: 2rem;
+  color: white;
 }
 .anim {
   animation: flip 0.4s ease-in-out;
+}
+button {
+  background-color: wheat;
+  color: brown;
+  font-size: 110%;
+  padding: 0.5rem 0 0.5rem 0;
+  border-radius: 10px;
+  border: 1px solid brown;
+  width: 100px;
+  cursor: pointer;
+  font-size: x-large;
+
+  transition: all 0.4s ease-in-out;
+}
+button:hover {
+  transform: scale(1.2);
 }
 
 .match {

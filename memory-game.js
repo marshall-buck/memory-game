@@ -3,6 +3,7 @@
 /** Memory game: find matching pairs of cards and flip both of them. */
 
 const FOUND_MATCH_WAIT_MSECS = 1000;
+const PAINT_TIME = 20;
 
 const NOTES = [
   "♩", "♪", "♫", "♬", "♭",
@@ -11,15 +12,36 @@ const NOTES = [
 ];
 
 
-const notes = shuffle(NOTES);
-console.log(notes.length);
+let notes;
 
-createCards(notes);
+
+// createCards(notes);
 
 let firstCardFlipped;
 let activeCards = 0;
-let gameState = { notStarted: true, inProgress: false, ended: false };
+let gameState = { inProgress: false };
+const startButton = document.querySelector('#start');
 
+
+startButton.addEventListener('click', (e) => {
+  if (gameState.inProgress === false) {
+    notes = shuffle(NOTES);
+    createCards(notes);
+    gameState.inProgress = true;
+    e.target.innerText = "Reset";
+
+  } else {
+    resetBoard();
+    setTimeout(() => {
+      notes = shuffle(NOTES);
+      createCards(notes);
+    }, 800);
+
+  }
+
+
+
+});
 /** Shuffle array items in-place and return shuffled array. */
 
 function shuffle(items) {
@@ -45,18 +67,24 @@ function shuffle(items) {
  * - a click event listener for each card to handleCardClick
  */
 
-function createCards(colors) {
+function createCards(notes) {
   const gameBoard = document.getElementById("game");
   let count = 0;
-  for (let color of colors) {
-    const card = document.createElement('div');
-    card.classList = 'card off';
-    card.id = count++;
+  for (let note of notes) {
+    count++;
+    setTimeout(() => {
+      const card = document.createElement('div');
+      card.classList = 'card off';
+      card.id = count++;
 
-    card.addEventListener('click', handleCardClick);
-    gameBoard.append(card);
+      card.addEventListener('click', handleCardClick);
+      gameBoard.append(card);
+    }, PAINT_TIME * count);
+
+
 
   }
+  gameBoard.style.opacity = '1';
 }
 
 /** Flip a card face-up.
@@ -91,6 +119,7 @@ function unFlipCard(card) {
 /** Handle clicking on a card: this could be first-card or second-card. */
 
 function handleCardClick(evt) {
+  if (gameState.inProgress === false) return;
   const card = evt.target;
   if (!isCardOff(card) || activeCards === 2) {
     return;
@@ -112,7 +141,8 @@ function handleCardClick(evt) {
 
         if (isEndOfGame()) {
           setTimeout(() => {
-            window.alert('You win');
+            startButton.innerText = 'Start';
+            gameState.inProgress = false;
           }, 500);
 
         } else { firstCardFlipped = undefined; activeCards = 0; }
@@ -156,3 +186,16 @@ function isEndOfGame() {
   }
   return true;
 }
+
+function resetBoard() {
+  const cards = document.querySelectorAll('.card');
+  let count = 0;
+  for (let card of cards) {
+    count++;
+    setTimeout(() => {
+      card.remove();
+    }, PAINT_TIME * count);
+  }
+
+}
+
