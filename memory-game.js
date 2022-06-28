@@ -3,17 +3,23 @@
 /** Memory game: find matching pairs of cards and flip both of them. */
 
 const FOUND_MATCH_WAIT_MSECS = 1000;
-const COLORS = [
-  "red", "blue", "green", "orange", "purple",
-  "red", "blue", "green", "orange", "purple",
+// const COLORS = [
+//   "red", "blue", "green", "orange", "purple",
+//   "red", "blue", "green", "orange", "purple",
+// ];
+const NOTES = [
+  "♩", "♪", "♫", "♬", "♭",
+  "♮", "♯", "𝄞", "𝄡", "𝄢", "𝄪", "𝄫", "♩", "♪", "♫", "♬", "♭",
+  "♮", "♯", "𝄞", "𝄡", "𝄢", "𝄪", "𝄫"
 ];
 
-const colors = shuffle(COLORS);
+const notes = shuffle(NOTES);
 
-createCards(colors);
+createCards(notes);
 
 let firstCardFlipped;
 let activeCards = 0;
+let gameState = { notStarted: true, inProgress: false, ended: false };
 
 /** Shuffle array items in-place and return shuffled array. */
 
@@ -45,10 +51,12 @@ function createCards(colors) {
   let count = 0;
   for (let color of colors) {
     const card = document.createElement('div');
-    card.classList = `card off ${color}`;
+    card.classList = 'card off';
     card.id = count++;
+
     card.addEventListener('click', handleCardClick);
     gameBoard.append(card);
+
   }
 }
 
@@ -57,15 +65,14 @@ function createCards(colors) {
  */
 
 function flipCard(card) {
-
-
+  const index = card.id;
+  const p = document.createElement('p');
+  p.innerText = notes[index];
+  card.append(p);
 
   card.classList.toggle('off');
+
   activeCards++;
-
-
-
-
 }
 
 /** Flip a card face-down.
@@ -74,8 +81,8 @@ function flipCard(card) {
 
 function unFlipCard(card) {
   card.classList.toggle('off');
-
-
+  const p = card.firstChild;
+  card.removeChild(p);
 }
 
 /** Handle clicking on a card: this could be first-card or second-card. */
@@ -90,14 +97,14 @@ function handleCardClick(evt) {
 
     //  is there a currentCard ie. is this the second card flipped
     if (activeCards === 2) {
-      console.log(firstCardFlipped.classList, card.classList);
-      if (firstCardFlipped.classList.value === card.classList.value) {
+
+      if (notes[firstCardFlipped.id] === notes[card.id]) {
         // a match occurred
         card.classList.add('match');
         const first = document.getElementById(firstCardFlipped.id);
         first.classList.add('match');
         firstCardFlipped = undefined;
-        console.log('match found');
+
         if (isEndOfGame()) {
           setTimeout(() => {
             window.alert('You win');
@@ -117,9 +124,9 @@ function handleCardClick(evt) {
       }
 
     } else {
-      // flipCard(card);
+
       firstCardFlipped = card;
-      console.log(firstCardFlipped);
+
     }
   }
 
@@ -127,17 +134,19 @@ function handleCardClick(evt) {
 }
 
 
-function returnAllCards() {
-  return document.querySelectorAll('.card');
-}
+// function returnAllCards() {
+//   return document.querySelectorAll('.card');
+// }
 
 function isCardOff(card) {
   if (card.classList.contains('off')) return true;
   return false;
 }
+
+
 function isEndOfGame() {
 
-  for (let card of returnAllCards()) {
+  for (let card of document.querySelectorAll('.card')) {
     if (card.classList.contains('off')) return false;
   }
   return true;
