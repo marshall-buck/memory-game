@@ -3,17 +3,16 @@
 /** Memory game: find matching pairs of cards and flip both of them. */
 
 const FOUND_MATCH_WAIT_MSECS = 1000;
-// const COLORS = [
-//   "red", "blue", "green", "orange", "purple",
-//   "red", "blue", "green", "orange", "purple",
-// ];
+
 const NOTES = [
   "♩", "♪", "♫", "♬", "♭",
   "♮", "♯", "𝄞", "𝄡", "𝄢", "𝄪", "𝄫", "♩", "♪", "♫", "♬", "♭",
   "♮", "♯", "𝄞", "𝄡", "𝄢", "𝄪", "𝄫"
 ];
 
+
 const notes = shuffle(NOTES);
+console.log(notes.length);
 
 createCards(notes);
 
@@ -71,6 +70,7 @@ function flipCard(card) {
   card.append(p);
 
   card.classList.toggle('off');
+  card.classList.toggle('anim');
 
   activeCards++;
 }
@@ -80,9 +80,12 @@ function flipCard(card) {
  */
 
 function unFlipCard(card) {
+
   card.classList.toggle('off');
   const p = card.firstChild;
+
   card.removeChild(p);
+  card.classList.toggle('anim');
 }
 
 /** Handle clicking on a card: this could be first-card or second-card. */
@@ -101,8 +104,10 @@ function handleCardClick(evt) {
       if (notes[firstCardFlipped.id] === notes[card.id]) {
         // a match occurred
         card.classList.add('match');
+        card.classList.toggle('anim');
         const first = document.getElementById(firstCardFlipped.id);
         first.classList.add('match');
+        card.classList.toggle('anim');
         firstCardFlipped = undefined;
 
         if (isEndOfGame()) {
