@@ -70,16 +70,15 @@ function shuffle(items) {
 function createCards(notes) {
   const gameBoard = document.getElementById("game");
   let count = 0;
-  for (let note of notes) {
-    count++;
+  for (let i = 0; i < notes.length; i++) {
+
     setTimeout(() => {
       const card = document.createElement('div');
       card.classList = 'card off';
-      card.id = count++;
-
+      card.id = i;
       card.addEventListener('click', handleCardClick);
       gameBoard.append(card);
-    }, PAINT_TIME * count);
+    }, PAINT_TIME * i);
 
 
 
