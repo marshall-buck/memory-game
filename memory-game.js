@@ -5,36 +5,50 @@
 const FOUND_MATCH_WAIT_MSECS = 1000;
 const PAINT_TIME = 20;
 
-const NOTES = [
-  "♩", "♪", "♫", "♬", "♭",
-  "♮", "♯", "𝄞", "𝄡", "𝄢", "𝄪", "𝄫", "♩", "♪", "♫", "♬", "♭",
-  "♮", "♯", "𝄞", "𝄡", "𝄢", "𝄪", "𝄫"
-];
+// const NOTES = [
+//   "♩", "♪", "♫", "♬", "♭",
+//   "♮", "♯", "𝄞", "𝄡", "𝄢", "𝄪", "𝄫", "♩", "♪", "♫", "♬", "♭",
+//   "♮", "♯", "𝄞", "𝄡", "𝄢", "𝄪", "𝄫"
+// ];
 
-
-let notes;
+let imgSrcs = [];
+let imgSrcShuffled;
 
 
 // createCards(notes);
 
 let firstCardFlipped;
 let activeCards = 0;
-let gameState = { inProgress: false };
-const startButton = document.querySelector('#start');
+let gameState = { inProgress: false, fetching: false };
+const form = document.querySelector('#start');
 
 
-startButton.addEventListener('click', (e) => {
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const num = form.elements.num.value;
+
+  const page = await getRandomPageNumber();
+  console.log(page);
+  const apiLinks = await fetchApiLinks(num, page);
+  console.log(apiLinks);
+  const srcs = await fetchImageIds(apiLinks);
+  imgSrcs = [...srcs, ...srcs];
+
+
+
+
   if (gameState.inProgress === false) {
-    notes = shuffle(NOTES);
-    createCards(notes);
+    imgSrcShuffled = shuffle(imgSrcs);
+    createCards(imgSrcShuffled);
     gameState.inProgress = true;
     e.target.innerText = "Reset";
 
   } else {
     resetBoard();
     setTimeout(() => {
-      notes = shuffle(NOTES);
-      createCards(notes);
+      imgSrcShuffled = shuffle(imgSrcs);
+      createCards(imgSrcShuffled);
     }, 800);
 
   }
@@ -67,10 +81,10 @@ function shuffle(items) {
  * - a click event listener for each card to handleCardClick
  */
 
-function createCards(notes) {
+function createCards(srcs) {
   const gameBoard = document.getElementById("game");
   let count = 0;
-  for (let i = 0; i < notes.length; i++) {
+  for (let i = 0; i < srcs.length; i++) {
 
     setTimeout(() => {
       const card = document.createElement('div');
@@ -92,11 +106,15 @@ function createCards(notes) {
 
 function flipCard(card) {
   const index = card.id;
-  const p = document.createElement('p');
-  p.innerText = notes[index];
-  card.append(p);
+  // const p = document.createElement('p');
+  // p.innerText = imgSrcShuffled[index];
+  // card.append(p);
+  const img = document.createElement('img');
+  img.src = imgSrcShuffled[index];
+  card.append(img);
 
   card.classList.toggle('off');
+
   card.classList.toggle('anim');
 
   activeCards++;
@@ -129,7 +147,7 @@ function handleCardClick(evt) {
     //  is there a currentCard ie. is this the second card flipped
     if (activeCards === 2) {
 
-      if (notes[firstCardFlipped.id] === notes[card.id]) {
+      if (imgSrcShuffled[firstCardFlipped.id] === imgSrcShuffled[card.id]) {
         // a match occurred
         card.classList.add('match');
         card.classList.toggle('anim');
@@ -140,7 +158,7 @@ function handleCardClick(evt) {
 
         if (isEndOfGame()) {
           setTimeout(() => {
-            startButton.innerText = 'Start';
+            form.innerText = 'Start';
             gameState.inProgress = false;
           }, 500);
 
@@ -195,4 +213,59 @@ function resetBoard() {
   }
 
 }
+// returns a randompage number to retrieve images from
+async function getRandomPageNumber() {
+  return Math.floor(Math.random() * (90 - 1) + 1);
+}
 
+async function fetchApiLinks(num, page) {
+  gameState.fetching = true;
+
+  try {
+    const response = await fetch(`https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=api_link,pagination&limit=${num}&page=${page}`);
+    const json = await response.json();
+    const results = await json;
+    console.log(results);
+    const apiLinks = [];
+    for (const data of results.data) {
+      apiLinks.push(data.api_link);
+    }
+    return apiLinks;
+  } catch (error) {
+    gameState.fetching = false;
+    console.log(error);
+  }
+
+
+}
+async function fetchImageIds(array) {
+  let outPut = [];
+  for (const link of array) {
+    try {
+      const response = await fetch(`${link}/?fields=image_id`);
+      const json = await response.json();
+      const result = await json;
+
+      outPut.push(`https://www.artic.edu/iiif/2/${result.data.image_id}/full/200,/0/default.jpg`);
+    } catch (error) {
+      console.log(error);
+      gameState.fetching = false;
+    }
+
+
+  }
+  gameState.fetching = false;
+  return outPut;
+}
+
+
+
+// }
+// get list of ids, object will have an api field, uae that to get image id
+// https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=api_link&limit=30
+
+// get list of image ids
+// https://api.artic.edu/api/v1/artworks/102611/?fields=image_id
+
+// get image url
+// https://www.artic.edu/iiif/2/4dd78841-4237-9e49-76ec-136fbfa0b0a7/full/200,/0/default.jpg
