@@ -129,9 +129,15 @@ button:hover {
   position: absolute;
   inset: 0;
   background-color: aliceblue;
-  opacity: 0;
+  opacity: 0.3;
   z-index: 20;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+  font-size: xx-large;
 }
+
 @keyframes flip {
   0% {
     transform: scaleX(0);
