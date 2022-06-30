@@ -5,17 +5,13 @@
 const FOUND_MATCH_WAIT_MSECS = 1000;
 const PAINT_TIME = 20;
 
-// const NOTES = [
-//   "♩", "♪", "♫", "♬", "♭",
-//   "♮", "♯", "𝄞", "𝄡", "𝄢", "𝄪", "𝄫", "♩", "♪", "♫", "♬", "♭",
-//   "♮", "♯", "𝄞", "𝄡", "𝄢", "𝄪", "𝄫"
-// ];
+
 
 let imgSrcs = [];
 let imgSrcShuffled;
 
 
-// createCards(notes);
+
 
 let firstCardFlipped;
 let activeCards = 0;
@@ -23,15 +19,20 @@ let gameState = { inProgress: false, fetching: false };
 const form = document.querySelector('#start');
 
 
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const num = form.elements.num.value;
+  if (isNaN(num) || num < 1 || num > 50) {
+    window.alert('Please enter a number between 1 and 50');
+    return;
+  }
 
   const page = await getRandomPageNumber();
-  console.log(page);
+
   const apiLinks = await fetchApiLinks(num, page);
-  console.log(apiLinks);
+
   const srcs = await fetchImageIds(apiLinks);
   imgSrcs = [...srcs, ...srcs];
 
@@ -42,7 +43,9 @@ form.addEventListener('submit', async (e) => {
     imgSrcShuffled = shuffle(imgSrcs);
     createCards(imgSrcShuffled);
     gameState.inProgress = true;
-    e.target.innerText = "Reset";
+    form.lastElementChild.innerText = "Restart";
+    form.reset();
+
 
   } else {
     resetBoard();
@@ -225,7 +228,6 @@ async function fetchApiLinks(num, page) {
     const response = await fetch(`https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=api_link,pagination&limit=${num}&page=${page}`);
     const json = await response.json();
     const results = await json;
-    console.log(results);
     const apiLinks = [];
     for (const data of results.data) {
       apiLinks.push(data.api_link);

@@ -10,6 +10,7 @@ h1 {
 }
 
 .container {
+  position: relative;
   display: flex;
   flex-flow: column nowrap;
   justify-content: center;
@@ -67,20 +68,40 @@ h1 {
 }
 
 .off {
-  background-color: rgb(240, 17, 17);
+  background-color: rgb(147, 133, 53);
+  background-image: url(kindpng_3222475.png);
+  background-size: 50%;
+  background-repeat: no-repeat;
+  background-position: center;
+
   transition: all 0.4s ease-in-out;
 }
-.controls {
+.dashboard {
   display: flex;
   flex-flow: column nowrap;
   justify-content: center;
   align-items: center;
   gap: 1rem;
 }
-.controls p {
+.dashboard h2 {
   font-size: 2rem;
   color: white;
 }
+
+form {
+  display: flex;
+
+  align-items: center;
+}
+form input {
+  height: 3rem;
+  width: 150px;
+  border-radius: 10px;
+  padding: 0.5rem;
+  font-size: 110%;
+  margin-right: 2rem;
+}
+
 .anim {
   animation: flip 0.4s ease-in-out;
 }
@@ -88,13 +109,13 @@ button {
   background-color: wheat;
   color: brown;
   font-size: 110%;
-  padding: 0.5rem 0 0.5rem 0;
+
   border-radius: 10px;
-  border: 1px solid brown;
-  width: 100px;
+
+  width: 150px;
+  height: 3rem;
   cursor: pointer;
   font-size: x-large;
-
   transition: all 0.4s ease-in-out;
 }
 button:hover {
@@ -104,7 +125,13 @@ button:hover {
 .match {
   animation: match 0.6s ease-in-out;
 }
-
+.loading {
+  position: absolute;
+  inset: 0;
+  background-color: aliceblue;
+  opacity: 0;
+  z-index: 20;
+}
 @keyframes flip {
   0% {
     transform: scaleX(0);
