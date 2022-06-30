@@ -15,8 +15,6 @@ let activeCards = 0;
 
 const form = document.querySelector('#start');
 
-
-
 form.addEventListener('submit', handelFormSubmission);
 /** Shuffle array items in-place and return shuffled array. */
 
@@ -63,7 +61,7 @@ function createCards(srcs) {
   }
   gameBoard.style.opacity = '1';
 }
-
+// Delete cards on game restart
 function deleteCards() {
   const cards = document.querySelectorAll('.card');
   let count = 0;
@@ -193,7 +191,7 @@ async function handelFormSubmission(e) {
 
 
 }
-
+// Card helpers
 function isCardOff(card) {
   if (card.classList.contains('off')) return true;
   return false;
@@ -209,9 +207,25 @@ function isEndOfGame() {
 }
 
 
-// returns a random page number to retrieve images from
+
+// Loaders for while fetching images
+function showLoader(message) {
+  const container = document.querySelector('.container');
+  const loadContainer = document.createElement('div');
+  loadContainer.classList = 'loading';
+  loadContainer.innerText = message;
+  container.append(loadContainer);
+  const spinner = document.createElement('div');
+  spinner.classList = 'load-spin';
+  loadContainer.append(spinner);
+}
+function removeLoader() {
+  document.querySelector('.loading').remove();
+}
+
+/** API functions to retrieve images from Chicago art institute */
 async function getRandomPageNumber() {
-  return Math.floor(Math.random() * (90 - 1) + 1);
+  return Math.floor(Math.random() * (50 - 1) + 1);
 }
 
 async function fetchApiLinks(num, page) {
@@ -250,17 +264,6 @@ async function fetchImageIds(array) {
   }
   removeLoader();
   return imgSrcs;
-}
-
-function showLoader(message) {
-  const container = document.querySelector('.container');
-  const loading = document.createElement('dialogue');
-  loading.classList = 'loading';
-  loading.innerText = message;
-  container.append(loading);
-}
-function removeLoader() {
-  document.querySelector('.loading').remove();
 }
 
 
