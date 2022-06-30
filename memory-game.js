@@ -1,11 +1,13 @@
 "use strict";
-
+// TODO:Save current game state
+// TODO::Score
+// TODO: End of game animation
 /** Memory game: find matching pairs of cards and flip both of them. */
 
 const FOUND_MATCH_WAIT_MSECS = 1000;
 const PAINT_TIME = 60;
 
-
+let currentScore = 0;
 
 let imgSrcs = [];
 let imgSrcShuffled;
@@ -111,7 +113,7 @@ function unFlipCard(card) {
 function handleCardClick(evt) {
   const card = evt.target;
   if (!isCardOff(card) || activeCards === 2) {
-    console.log('');
+
     return;
   }
   else {
@@ -120,6 +122,7 @@ function handleCardClick(evt) {
     if (activeCards === 2) {
       // a match occurred
       if (imgSrcShuffled[firstCardFlipped.id] === imgSrcShuffled[card.id]) {
+        currentScore++;
         card.classList.add('match');
         card.classList.toggle('anim');
         const first = document.getElementById(firstCardFlipped.id);

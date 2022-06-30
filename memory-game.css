@@ -34,6 +34,7 @@ h1 {
 
 #game {
   width: 90%;
+  /* min-height: 80vh; */
   display: flex;
   flex-flow: row wrap;
   margin: 0 auto;
@@ -46,7 +47,9 @@ h1 {
   transition: all 1s ease;
 }
 .scroll {
-  overflow-y: scroll;
+  overflow-y: auto;
+  width: 100vw;
+  /* height: inherit; */
 }
 .card {
   width: 100px;
@@ -144,8 +147,8 @@ button:hover {
 
 .load-spin {
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 48px;
+  height: 48px;
   border: 0.25rem solid brown;
   border-top-color: white;
   animation: spin 2s infinite linear;
