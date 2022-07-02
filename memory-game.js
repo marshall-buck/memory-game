@@ -44,12 +44,8 @@ function shuffle(items) {
  */
 
 function createCards(srcs) {
-
-
   const gameBoard = document.getElementById("game");
-  let count = 0;
   for (let i = 0; i < srcs.length; i++) {
-
     setTimeout(() => {
       const card = document.createElement('div');
       card.classList = 'card off';
@@ -57,9 +53,6 @@ function createCards(srcs) {
       card.addEventListener('click', handleCardClick);
       gameBoard.append(card);
     }, PAINT_TIME * i);
-
-
-
   }
   gameBoard.style.opacity = '1';
 }
@@ -91,7 +84,7 @@ function flipCard(card) {
   card.classList.toggle('off');
 
   card.classList.toggle('anim');
-
+  // Every time a card is flipped, add 1 to activeCards
   activeCards++;
 }
 
@@ -112,10 +105,11 @@ function unFlipCard(card) {
 
 function handleCardClick(evt) {
   const card = evt.target;
+  // if card is active or if active cards are 2 do not click
   if (!isCardOff(card) || activeCards === 2) {
-
     return;
   }
+  // flip a card
   else {
     flipCard(card);
     //  is there a currentCard ie. is this the second card flipped
@@ -129,7 +123,7 @@ function handleCardClick(evt) {
         first.classList.add('match');
         card.classList.toggle('anim');
         firstCardFlipped = undefined;
-
+        // End if game
         if (isEndOfGame()) {
           setTimeout(() => {
             console.log('end of game');
@@ -137,28 +131,25 @@ function handleCardClick(evt) {
             firstCardFlipped = undefined;
           }, 500);
 
-        } else { firstCardFlipped = undefined; activeCards = 0; }
-      } else {
-
+        }
+        // a match occurred but not end of game
+        else { firstCardFlipped = undefined; activeCards = 0; }
+      }
+      // No match occurred
+      else {
         setTimeout(() => {
           unFlipCard(card);
           unFlipCard(firstCardFlipped);
           firstCardFlipped = undefined;
           activeCards = 0;
-
         }, 1000);
-
-        return;
       }
-
-    } else {
-
+    }
+    // This is the first card flipped
+    else {
       firstCardFlipped = card;
-
     }
   }
-
-
 }
 
 
