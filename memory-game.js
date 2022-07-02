@@ -78,11 +78,14 @@ function deleteCards() {
 function flipCard(card) {
   const index = card.id;
   const img = document.createElement('img');
+  img.addEventListener('error', (e) => {
+    e.target.src = 'backup.png';
+  });
   img.src = imgSrcShuffled[index];
+
   card.append(img);
-
+  console.log(img);
   card.classList.toggle('off');
-
   card.classList.toggle('anim');
   // Every time a card is flipped, add 1 to activeCards
   activeCards++;
@@ -158,8 +161,8 @@ async function handelFormSubmission(e) {
   e.preventDefault();
   deleteCards();
   const num = form.elements.num.value;
-  if (isNaN(num) || num < 1 || num > 50) {
-    window.alert('Please enter a number between 1 and 50');
+  if (isNaN(num) || num < 1 || num > 20) {
+    window.alert('Please enter a number between 1 and 20');
     return;
   }
   showLoader('Please wait while images are retrieved');
@@ -168,6 +171,7 @@ async function handelFormSubmission(e) {
   const apiLinks = await fetchApiLinks(num, page);
 
   const srcs = await fetchImageIds(apiLinks);
+  console.log(srcs);
   imgSrcs = [...srcs, ...srcs];
 
 
@@ -218,14 +222,11 @@ function removeLoader() {
 }
 
 /** API functions to retrieve images from Chicago art institute */
-async function getRandomPageNumber() {
-  return Math.floor(Math.random() * (50 - 1) + 1);
+function getRandomPageNumber() {
+  return Math.floor(Math.random() * (25 - 1) + 1);
 }
 
 async function fetchApiLinks(num, page) {
-
-
-
   try {
     const response = await fetch(`https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=api_link,pagination&limit=${num}&page=${page}`);
     const json = await response.json();
@@ -234,6 +235,7 @@ async function fetchApiLinks(num, page) {
     for (const data of results.data) {
       apiLinks.push(data.api_link);
     }
+    console.log(results, page);
     return apiLinks;
   } catch (error) {
 
