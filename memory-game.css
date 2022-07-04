@@ -103,7 +103,7 @@ form {
 form input {
   height: 3rem;
   width: 150px;
-  border-radius: 10px;
+  border-radius: 2px;
   padding: 0.5rem;
   font-size: 110%;
   margin-right: 2rem;
@@ -113,11 +113,11 @@ form input {
   animation: flip 0.4s ease-in-out;
 }
 button {
-  background-color: wheat;
+  background-color: burlywood;
   color: brown;
   font-size: 110%;
 
-  border-radius: 10px;
+  border-radius: 2px;
 
   width: 150px;
   height: 3rem;
@@ -152,6 +152,46 @@ button:hover {
   border: 0.25rem solid brown;
   border-top-color: white;
   animation: spin 2s infinite linear;
+}
+
+.high-score {
+  position: absolute;
+  display: flex;
+  justify-items: start;
+  align-items: center;
+  gap: 1rem;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  height: 40px;
+  background-color: burlywood;
+  padding: 2rem;
+}
+.current-score {
+  position: absolute;
+  display: flex;
+  justify-items: start;
+  align-items: center;
+  gap: 1rem;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  height: 40px;
+  background-color: burlywood;
+  padding: 2rem;
+}
+.largest-board {
+  position: absolute;
+  display: flex;
+  justify-items: start;
+  align-items: center;
+  gap: 1rem;
+  bottom: 10px;
+  right: 10px;
+  z-index: 10;
+  height: 40px;
+  background-color: burlywood;
+  padding: 2rem;
 }
 
 @keyframes flip {

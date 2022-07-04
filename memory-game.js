@@ -17,10 +17,10 @@ let activeCards = 0;
 const form = document.querySelector('#start');
 
 document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('beforeunload', closingWindow);
 
 
 function init() {
-
   if (!localStorage.getItem('currentGameState')) {
     setStorage('currentGameState', {
       uiState: [],
@@ -29,29 +29,42 @@ function init() {
       firstCardFlipped: undefined,
       activeCards: 0
     });
+    if (!localStorage.getItem('runningStats')) {
+      setStorage('runningStats', {
+        largestBoardComplete: 0,
+        totalCardsFlipped: 0,
+        highestScore: 0
+      });
+    }
   } else {
-
+    const currentGameState = JSON.parse(localStorage.getItem('currentGameState'));
+    console.log(currentGameState);
   }
+}
+// /save game data before window closes
+function closingWindow() {
+  const currentUi = () => {
+    let out = [];
+    const cards = document.querySelectorAll('.card');
+    for (let card of cards) {
+      let obj = {};
+      obj[card.id] = card.className;
+      out.push(obj);
+    }
+    return out;
+  };
+
+  localStorage.setItem('currentGameState', JSON.stringify({
+    uiState: currentUi(),
+    imgSrcShuffled: imgSrcShuffled,
+    currentScore: currentScore,
+    firstCardFlipped: firstCardFlipped,
+    activeCards: activeCards
+  }));
 }
 
 form.addEventListener('submit', handelFormSubmission);
-/** Shuffle array items in-place and return shuffled array. */
 
-function shuffle(items) {
-  // This algorithm does a "perfect shuffle", where there won't be any
-  // statistical bias in the shuffle (many naive attempts to shuffle end up not
-  // be a fair shuffle). This is called the Fisher-Yates shuffle algorithm; if
-  // you're interested, you can learn about it, but it's not important.
-
-  for (let i = items.length - 1; i > 0; i--) {
-    // generate a random index between 0 and i
-    let j = Math.floor(Math.random() * i);
-    // swap item at i <-> item at j
-    [items[i], items[j]] = [items[j], items[i]];
-  }
-
-  return items;
-}
 
 /* Create card for every src in srcs array
     and  paint to DOM while adding event listener,
@@ -60,23 +73,15 @@ function shuffle(items) {
 
 function createCards(srcs) {
   const gameBoard = document.getElementById('game');
-  let uiState = [];
   for (let i = 0; i < srcs.length; i++) {
-    let obj = {};
-    obj[i] = 'card off';
-    uiState.push(obj);
     setTimeout(() => {
       const card = document.createElement('div');
       card.classList = 'card off';
       card.id = i;
       card.addEventListener('click', handleCardClick);
       gameBoard.append(card);
-
-
     }, PAINT_TIME * i);
   }
-  console.log(uiState);
-  writeToGameState('uiState', uiState);
   gameBoard.style.opacity = '1';
 }
 // Delete cards on game restart
@@ -89,8 +94,8 @@ function deleteCards() {
       card.remove();
     }, PAINT_TIME * count);
   }
-  writeToGameState('imgSrcShuffled', []);
-  // imgSrcShuffled = [];
+
+  imgSrcShuffled = [];
 
 }
 
@@ -143,7 +148,6 @@ function handleCardClick(evt) {
       // a match occurred
       if (imgSrcShuffled[firstCardFlipped.id] === imgSrcShuffled[card.id]) {
         currentScore++;
-        getStorage('currentScore');
         card.classList.add('match');
         card.classList.toggle('anim');
         const first = document.getElementById(firstCardFlipped.id);
@@ -185,8 +189,8 @@ async function handelFormSubmission(e) {
   e.preventDefault();
   deleteCards();
   const num = form.elements.num.value;
-  if (isNaN(num) || num < 1 || num > 20) {
-    window.alert('Please enter a number between 1 and 20');
+  if (isNaN(num) || num < 1 || num > 30) {
+    window.alert('Please enter a number between 1 and 30');
     return;
   }
   showLoader('Please wait while images are retrieved');
@@ -215,7 +219,6 @@ function isCardOff(card) {
 
 
 function isEndOfGame() {
-
   for (let card of document.querySelectorAll('.card')) {
     if (isCardOff(card)) return false;
   }
@@ -296,7 +299,22 @@ function setStorage(string, data) {
 }
 
 
+/** Shuffle array items in-place and return shuffled array. */
+function shuffle(items) {
+  // This algorithm does a "perfect shuffle", where there won't be any
+  // statistical bias in the shuffle (many naive attempts to shuffle end up not
+  // be a fair shuffle). This is called the Fisher-Yates shuffle algorithm; if
+  // you're interested, you can learn about it, but it's not important.
 
+  for (let i = items.length - 1; i > 0; i--) {
+    // generate a random index between 0 and i
+    let j = Math.floor(Math.random() * i);
+    // swap item at i <-> item at j
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+
+  return items;
+}
 
 // }
 // get list of ids, object will have an api field, use that to get image id
