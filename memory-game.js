@@ -7,15 +7,32 @@
 const FOUND_MATCH_WAIT_MSECS = 1000;
 const PAINT_TIME = 60;
 
-let currentScore = 0;
 
-let imgSrcs = [];
+let currentScore = 0;
 let imgSrcShuffled;
 
 let firstCardFlipped;
 let activeCards = 0;
 
 const form = document.querySelector('#start');
+
+document.addEventListener('DOMContentLoaded', init);
+
+
+function init() {
+
+  if (!localStorage.getItem('currentGameState')) {
+    setStorage('currentGameState', {
+      uiState: [],
+      imgSrcShuffled: [],
+      currentScore: 0,
+      firstCardFlipped: undefined,
+      activeCards: 0
+    });
+  } else {
+
+  }
+}
 
 form.addEventListener('submit', handelFormSubmission);
 /** Shuffle array items in-place and return shuffled array. */
@@ -36,24 +53,30 @@ function shuffle(items) {
   return items;
 }
 
-/** Create card for every color in colors (each will appear twice)
- *
- * Each div DOM element will have:
- * - a class with the value of the color
- * - a click event listener for each card to handleCardClick
+/* Create card for every src in srcs array
+    and  paint to DOM while adding event listener,
+    set id to index in source to check for matches
  */
 
 function createCards(srcs) {
-  const gameBoard = document.getElementById("game");
+  const gameBoard = document.getElementById('game');
+  let uiState = [];
   for (let i = 0; i < srcs.length; i++) {
+    let obj = {};
+    obj[i] = 'card off';
+    uiState.push(obj);
     setTimeout(() => {
       const card = document.createElement('div');
       card.classList = 'card off';
       card.id = i;
       card.addEventListener('click', handleCardClick);
       gameBoard.append(card);
+
+
     }, PAINT_TIME * i);
   }
+  console.log(uiState);
+  writeToGameState('uiState', uiState);
   gameBoard.style.opacity = '1';
 }
 // Delete cards on game restart
@@ -66,8 +89,8 @@ function deleteCards() {
       card.remove();
     }, PAINT_TIME * count);
   }
-  imgSrcs = [];
-  imgSrcShuffled = [];
+  writeToGameState('imgSrcShuffled', []);
+  // imgSrcShuffled = [];
 
 }
 
@@ -84,7 +107,7 @@ function flipCard(card) {
   img.src = imgSrcShuffled[index];
 
   card.append(img);
-  console.log(img);
+
   card.classList.toggle('off');
   card.classList.toggle('anim');
   // Every time a card is flipped, add 1 to activeCards
@@ -120,6 +143,7 @@ function handleCardClick(evt) {
       // a match occurred
       if (imgSrcShuffled[firstCardFlipped.id] === imgSrcShuffled[card.id]) {
         currentScore++;
+        getStorage('currentScore');
         card.classList.add('match');
         card.classList.toggle('anim');
         const first = document.getElementById(firstCardFlipped.id);
@@ -156,7 +180,7 @@ function handleCardClick(evt) {
 }
 
 
-/** Handle form submission */
+/** Handle form submission and get game data */
 async function handelFormSubmission(e) {
   e.preventDefault();
   deleteCards();
@@ -166,21 +190,15 @@ async function handelFormSubmission(e) {
     return;
   }
   showLoader('Please wait while images are retrieved');
-  const page = await getRandomPageNumber();
+  const page = getRandomPageNumber();
 
   const apiLinks = await fetchApiLinks(num, page);
 
-  const srcs = await fetchImageIds(apiLinks);
-  console.log(srcs);
-  imgSrcs = [...srcs, ...srcs];
-
-
-
-
-  imgSrcShuffled = shuffle(imgSrcs);
+  const imgSrcs = await fetchImageIds(apiLinks);
+  imgSrcShuffled = shuffle([...imgSrcs, ...imgSrcs]);
   createCards(imgSrcShuffled);
-
-  form.lastElementChild.innerText = "Restart";
+  writeToGameState('imgSrcShuffled', imgSrcShuffled);
+  form.lastElementChild.innerText = 'Restart';
   form.reset();
 
 
@@ -223,7 +241,7 @@ function removeLoader() {
 
 /** API functions to retrieve images from Chicago art institute */
 function getRandomPageNumber() {
-  return Math.floor(Math.random() * (25 - 1) + 1);
+  return Math.floor(Math.random() * 25 + 1);
 }
 
 async function fetchApiLinks(num, page) {
@@ -235,7 +253,7 @@ async function fetchApiLinks(num, page) {
     for (const data of results.data) {
       apiLinks.push(data.api_link);
     }
-    console.log(results, page);
+
     return apiLinks;
   } catch (error) {
 
@@ -255,16 +273,33 @@ async function fetchImageIds(array) {
       imgSrcs.push(`https://www.artic.edu/iiif/2/${result.data.image_id}/full/200,/0/default.jpg`);
     } catch (error) {
       console.log(error);
-
     }
   }
   removeLoader();
   return imgSrcs;
 }
 
+// LOCAL STORAGE HELPERS
+
+function writeToGameState(key, value) {
+  const data = JSON.parse(localStorage.getItem('currentGameState'));
+  data[key] = value;
+  localStorage.setItem('currentGameState', JSON.stringify(data));
+}
+
+function readFromGameState(key) {
+  const data = localStorage.getItem(JSON.parse('currentGameState'));
+  return data[key];
+}
+function setStorage(string, data) {
+  localStorage.setItem(string, JSON.stringify(data));
+}
+
+
+
 
 // }
-// get list of ids, object will have an api field, uae that to get image id
+// get list of ids, object will have an api field, use that to get image id
 // https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=api_link&limit=30
 
 // get list of image ids
