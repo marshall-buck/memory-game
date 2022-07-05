@@ -1,7 +1,7 @@
 "use strict";
-// TODO:Save current game state
-// TODO::Score
-// TODO: End of game animation
+
+
+// FIXME: Un-flip animation
 /** Memory game: find matching pairs of cards and flip both of them. */
 
 const FOUND_MATCH_WAIT_MSECS = 1000;
@@ -22,12 +22,12 @@ let runningStats = {
 
 
 const form = document.querySelector("#start");
-
+// EVENT LISTENERS
 window.addEventListener("DOMContentLoaded", init);
 window.addEventListener("beforeunload", closingWindow);
+form.addEventListener("submit", handelFormSubmission);
 
 function init() {
-  console.log('init');
   // no game state in localStorage, so set it
   if (!localStorage.getItem("currentGameState")) {
     setStorage("currentGameState", currentGameState);
@@ -72,13 +72,10 @@ function closingWindow() {
 
 }
 
-form.addEventListener("submit", handelFormSubmission);
 
-/* Create card for every src in srcs array
-    and  paint to DOM while adding event listener,
-    set id to index in source to check for matches
+/**
+ Create card either from saved game state or new game
  */
-
 function createCards(srcs) {
   const gameBoard = document.getElementById("game");
   const uiState = currentGameState.uiState;
@@ -107,7 +104,7 @@ function createCards(srcs) {
   }
   gameBoard.style.opacity = "1";
 }
-// Delete cards on game restart
+// Delete cards on game restart, reset local game state, reset current score to 0
 function deleteCards() {
   const cards = document.querySelectorAll(".card");
   currentGameState = {
@@ -130,7 +127,7 @@ function deleteCards() {
 }
 
 /** Flip a card face-up.
- *make sure only one other card is 'on'
+
  */
 
 function flipCard(card) {
@@ -141,8 +138,6 @@ function flipCard(card) {
   });
   img.src = currentGameState.imgSrcShuffled[index];
   card.append(img);
-  // card.classList.toggle("off");
-  // card.classList.toggle("flip");
   card.classList = 'card flip';
 
   // Every time a card is flipped, add 1 to activeCards
@@ -304,6 +299,7 @@ async function fetchApiLinks(num, page) {
     return apiLinks;
   } catch (error) {
     console.log(error);
+    showLoader(`${error.message}, please try again later`);
   }
 }
 async function fetchImageIds(array) {
@@ -319,6 +315,7 @@ async function fetchImageIds(array) {
       );
     } catch (error) {
       console.log(error);
+      showLoader(`${error.message}, please try again later`);
     }
   }
   removeLoader();
