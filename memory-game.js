@@ -1,9 +1,5 @@
 "use strict";
 
-
-// FIXME: Un-flip animation
-/** Memory game: find matching pairs of cards and flip both of them. */
-
 const FOUND_MATCH_WAIT_MSECS = 1000;
 const PAINT_TIME = 60;
 let currentGameState = {
@@ -118,36 +114,25 @@ function handleCardClick(evt) {
         currentGameState.firstCardFlipped.id
         ] === currentGameState.imgSrcShuffled[card.id]
       ) {
-        currentGameState.currentScore++;
-        runningStats.totalMatched++;
-        const first = document.getElementById(currentGameState.firstCardFlipped.id);
-        card.classList = 'card match';
-        first.classList = 'card match';
-        currentGameState.firstCardFlipped = undefined;
-        setScores(currentGameState.currentScore, '.current-score > h2:last-child');
-        setScores(runningStats.totalMatched, '.total-matched > h2:last-child');
-        // End if game
-        if (isEndOfGame()) {
-          // const cards = document.querySelectorAll('.card');
-          // for (const card of cards) {
-          //   card.classList = 'end-game card';
-          // }
-          // const boardPairs = currentGameState.imgSrcShuffled.length / 2;
-          // if (boardPairs > runningStats.largestBoard) {
-          //   runningStats.largestBoard = boardPairs;
-          // }
-          // if (currentGameState.currentScore > runningStats.highScore) {
-          //   runningStats.highScore = currentGameState.currentScore;
-          //   setScores(runningStats.highScore, '.high-score > h2:last-child');
-          // }
-          // setScores(runningStats.largestBoard, '.largest-board > h2:last-child');
-          endOfGame();
-        }
-        // a match occurred but not end of game
-        else {
-          currentGameState.firstCardFlipped = undefined;
-          currentGameState.activeCards = 0;
-        }
+        matchedCards(card);
+        // currentGameState.currentScore++;
+        // runningStats.totalMatched++;
+        // const first = document.getElementById(currentGameState.firstCardFlipped.id);
+        // card.classList = 'card match';
+        // first.classList = 'card match';
+        // currentGameState.firstCardFlipped = undefined;
+        // setScores(currentGameState.currentScore, '.current-score > h2:last-child');
+        // setScores(runningStats.totalMatched, '.total-matched > h2:last-child');
+        // // End if game
+        // if (isEndOfGame()) {
+
+        //   endOfGame();
+        // }
+        // // a match occurred but not end of game
+        // else {
+        //   currentGameState.firstCardFlipped = undefined;
+        //   currentGameState.activeCards = 0;
+        // }
       }
       // No match occurred
       else {
@@ -261,11 +246,35 @@ function unFlipCard(card) {
 
 
 
-// Card helpers
+// CARD HELPERS
+
+// Check if card is off
 function isCardOff(card) {
   if (card.classList.contains("off")) return true;
   return false;
 }
+// Run on matched cards
+function matchedCards(card) {
+  currentGameState.currentScore++;
+  runningStats.totalMatched++;
+  const first = document.getElementById(currentGameState.firstCardFlipped.id);
+  card.classList = 'card match';
+  first.classList = 'card match';
+  currentGameState.firstCardFlipped = undefined;
+  setScores(currentGameState.currentScore, '.current-score > h2:last-child');
+  setScores(runningStats.totalMatched, '.total-matched > h2:last-child');
+  // End if game
+  if (isEndOfGame()) {
+
+    endOfGame();
+  }
+  // a match occurred but not end of game
+  else {
+    currentGameState.firstCardFlipped = undefined;
+    currentGameState.activeCards = 0;
+  }
+}
+
 // Checks if all cards are flipped
 function isEndOfGame() {
   for (let card of document.querySelectorAll(".card")) {
@@ -274,7 +283,6 @@ function isEndOfGame() {
   return true;
 }
 // Run at end of game
-
 function endOfGame() {
   const cards = document.querySelectorAll('.card');
   for (const card of cards) {
