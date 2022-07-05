@@ -23,10 +23,13 @@ let runningStats = {
 
 const form = document.querySelector("#start");
 // EVENT LISTENERS
-// window.addEventListener("DOMContentLoaded", init);
-// window.addEventListener("beforeunload", closingWindow);
+window.addEventListener("DOMContentLoaded", init);
+window.addEventListener("beforeunload", closingWindow);
 form.addEventListener("submit", handelFormSubmission);
 
+// EVENT HANDLERS
+
+// Initialize game, load for storage if possible
 function init() {
   // no game state in localStorage, so set it
   if (!localStorage.getItem("currentGameState")) {
@@ -72,6 +75,98 @@ function closingWindow() {
 
 }
 
+/** Handle form submission and get game data from api */
+async function handelFormSubmission(e) {
+  e.preventDefault();
+  deleteCards();
+  const num = form.elements.num.value;
+  if (isNaN(num) || num < 1 || num > 30) {
+    window.alert("Please enter a number between 1 and 30");
+    return;
+  }
+  showLoader("Please wait while images are retrieved");
+  const page = getRandomPageNumber();
+
+  const apiLinks = await fetchApiLinks(num, page);
+
+
+  const imgSrcs = await fetchImageIds(apiLinks);
+  currentGameState.imgSrcShuffled = shuffle([...imgSrcs, ...imgSrcs]);
+  createCards(currentGameState.imgSrcShuffled);
+
+  form.lastElementChild.innerText = "Restart";
+  form.reset();
+}
+
+/** Handle clicking on a card: this could be first-card or second-card. */
+
+function handleCardClick(evt) {
+  const card = evt.currentTarget;
+  // if card is active or if active cards are 2 do not click
+  if (!isCardOff(card) || currentGameState.activeCards === 2) {
+    return;
+  }
+  // flip a card
+  else {
+    flipCard(card);
+
+    //  is there a currentCard ie. is this the second card flipped
+    if (currentGameState.activeCards === 2) {
+
+      if (   // a match occurred
+        currentGameState.imgSrcShuffled[
+        currentGameState.firstCardFlipped.id
+        ] === currentGameState.imgSrcShuffled[card.id]
+      ) {
+        currentGameState.currentScore++;
+        runningStats.totalMatched++;
+        const first = document.getElementById(currentGameState.firstCardFlipped.id);
+        card.classList = 'card match';
+        first.classList = 'card match';
+        currentGameState.firstCardFlipped = undefined;
+        setScores(currentGameState.currentScore, '.current-score > h2:last-child');
+        setScores(runningStats.totalMatched, '.total-matched > h2:last-child');
+        // End if game
+        if (isEndOfGame()) {
+          // const cards = document.querySelectorAll('.card');
+          // for (const card of cards) {
+          //   card.classList = 'end-game card';
+          // }
+          // const boardPairs = currentGameState.imgSrcShuffled.length / 2;
+          // if (boardPairs > runningStats.largestBoard) {
+          //   runningStats.largestBoard = boardPairs;
+          // }
+          // if (currentGameState.currentScore > runningStats.highScore) {
+          //   runningStats.highScore = currentGameState.currentScore;
+          //   setScores(runningStats.highScore, '.high-score > h2:last-child');
+          // }
+          // setScores(runningStats.largestBoard, '.largest-board > h2:last-child');
+          endOfGame();
+        }
+        // a match occurred but not end of game
+        else {
+          currentGameState.firstCardFlipped = undefined;
+          currentGameState.activeCards = 0;
+        }
+      }
+      // No match occurred
+      else {
+        setTimeout(() => {
+          unFlipCard(card);
+          unFlipCard(currentGameState.firstCardFlipped);
+          currentGameState.firstCardFlipped = undefined;
+
+        }, 1000);
+      }
+    }
+    // This is the first card flipped
+    else {
+      currentGameState.firstCardFlipped = card;
+
+    }
+  }
+}
+
 
 /**
  Create card either from saved game state or new game
@@ -84,22 +179,25 @@ function createCards(srcs) {
       const card = document.createElement("div");
       card.id = i;
       const img = document.createElement("img");
+      img.src = 'kindpng_3222475.png';
+      card.classList = 'card off';
+
 
       if (uiState.length > 0) {
         const obj = uiState[i];
         card.classList = obj[i];
+        //  If card is a match load the proper image
         if (card.classList.contains('match') || card.classList.contains('end-game')) {
           img.src = currentGameState.imgSrcShuffled[i];
         }
-
-      } else {
-        img.src = 'kindpng_3222475.png';
-        card.classList = 'card off';
       }
+
+
       img.addEventListener("error", (e) => {
         e.target.src = "backup.png";
-      });
 
+        // console.log(e.target);
+      });
       card.append(img);
       card.addEventListener("click", handleCardClick);
       gameBoard.append(card);
@@ -156,116 +254,41 @@ function unFlipCard(card) {
 
   img.src = 'kindpng_3222475.png';
   // Every time a card is un-flipped, subtract 1 to activeCards
+
   currentGameState.activeCards--;
 }
 
-/** Handle clicking on a card: this could be first-card or second-card. */
-
-function handleCardClick(evt) {
-  console.log(currentGameState);
-  const card = evt.currentTarget;
-
-  // if card is active or if active cards are 2 do not click
-  if (!isCardOff(card) || currentGameState.activeCards === 2) {
-    return;
-  }
-  // flip a card
-  else {
-    flipCard(card);
-
-    //  is there a currentCard ie. is this the second card flipped
-    if (currentGameState.activeCards === 2) {
-
-      if (   // a match occurred
-        currentGameState.imgSrcShuffled[
-        currentGameState.firstCardFlipped.id
-        ] === currentGameState.imgSrcShuffled[card.id]
-      ) {
-        currentGameState.currentScore++;
-        runningStats.totalMatched++;
 
 
-        const first = document.getElementById(currentGameState.firstCardFlipped.id);
-        card.classList = 'card match';
-        first.classList = 'card match';
 
-        currentGameState.firstCardFlipped = undefined;
-        setScores(currentGameState.currentScore, '.current-score > h2:last-child');
-        setScores(runningStats.totalMatched, '.total-matched > h2:last-child');
-        // End if game
-        if (isEndOfGame()) {
-          const cards = document.querySelectorAll('.card');
-          for (const card of cards) {
-            card.classList = 'end-game card';
-          }
-          const boardPairs = currentGameState.imgSrcShuffled.length / 2;
-          if (boardPairs > runningStats.largestBoard) {
-            runningStats.largestBoard = boardPairs;
-          }
-          if (currentGameState.currentScore > runningStats.highScore) {
-            runningStats.highScore = currentGameState.currentScore;
-            setScores(runningStats.highScore, '.high-score > h2:last-child');
-          }
-          setScores(runningStats.largestBoard, '.largest-board > h2:last-child');
-        }
-        // a match occurred but not end of game
-        else {
-          currentGameState.firstCardFlipped = undefined;
-          currentGameState.activeCards = 0;
-        }
-      }
-      // No match occurred
-      else {
-
-        setTimeout(() => {
-          unFlipCard(card);
-          unFlipCard(currentGameState.firstCardFlipped);
-          currentGameState.firstCardFlipped = undefined;
-
-        }, 1000);
-      }
-    }
-    // This is the first card flipped
-    else {
-      currentGameState.firstCardFlipped = card;
-
-    }
-  }
-}
-
-/** Handle form submission and get game data */
-async function handelFormSubmission(e) {
-  e.preventDefault();
-  deleteCards();
-  const num = form.elements.num.value;
-  if (isNaN(num) || num < 1 || num > 30) {
-    window.alert("Please enter a number between 1 and 30");
-    return;
-  }
-  showLoader("Please wait while images are retrieved");
-  const page = getRandomPageNumber();
-
-  const apiLinks = await fetchApiLinks(num, page);
-
-
-  const imgSrcs = await fetchImageIds(apiLinks);
-  currentGameState.imgSrcShuffled = shuffle([...imgSrcs, ...imgSrcs]);
-  createCards(currentGameState.imgSrcShuffled);
-
-  form.lastElementChild.innerText = "Restart";
-  form.reset();
-}
 // Card helpers
 function isCardOff(card) {
   if (card.classList.contains("off")) return true;
   return false;
 }
-
+// Checks if all cards are flipped
 function isEndOfGame() {
   for (let card of document.querySelectorAll(".card")) {
     if (isCardOff(card)) return false;
   }
   return true;
+}
+// Run at end of game
+
+function endOfGame() {
+  const cards = document.querySelectorAll('.card');
+  for (const card of cards) {
+    card.classList = 'end-game card';
+  }
+  const boardPairs = currentGameState.imgSrcShuffled.length / 2;
+  if (boardPairs > runningStats.largestBoard) {
+    runningStats.largestBoard = boardPairs;
+  }
+  if (currentGameState.currentScore > runningStats.highScore) {
+    runningStats.highScore = currentGameState.currentScore;
+    setScores(runningStats.highScore, '.high-score > h2:last-child');
+  }
+  setScores(runningStats.largestBoard, '.largest-board > h2:last-child');
 }
 
 // Loaders for while fetching images
