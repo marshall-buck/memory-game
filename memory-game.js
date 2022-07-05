@@ -65,10 +65,8 @@ function closingWindow() {
     return out;
   };
   currentGameState.uiState = currentUi();
-
   setStorage("currentGameState", currentGameState);
   setStorage("runningStats", runningStats);
-
 }
 
 /** Handle form submission and get game data from api */
@@ -82,14 +80,10 @@ async function handelFormSubmission(e) {
   }
   showLoader("Please wait while images are retrieved");
   const page = getRandomPageNumber();
-
   const apiLinks = await fetchApiLinks(num, page);
-
-
   const imgSrcs = await fetchImageIds(apiLinks);
   currentGameState.imgSrcShuffled = shuffle([...imgSrcs, ...imgSrcs]);
   createCards(currentGameState.imgSrcShuffled);
-
   form.lastElementChild.innerText = "Restart";
   form.reset();
 }
@@ -105,34 +99,15 @@ function handleCardClick(evt) {
   // flip a card
   else {
     flipCard(card);
-
     //  is there a currentCard ie. is this the second card flipped
     if (currentGameState.activeCards === 2) {
-
-      if (   // a match occurred
+      // a match occurred
+      if (
         currentGameState.imgSrcShuffled[
         currentGameState.firstCardFlipped.id
         ] === currentGameState.imgSrcShuffled[card.id]
       ) {
-        matchedCards(card);
-        // currentGameState.currentScore++;
-        // runningStats.totalMatched++;
-        // const first = document.getElementById(currentGameState.firstCardFlipped.id);
-        // card.classList = 'card match';
-        // first.classList = 'card match';
-        // currentGameState.firstCardFlipped = undefined;
-        // setScores(currentGameState.currentScore, '.current-score > h2:last-child');
-        // setScores(runningStats.totalMatched, '.total-matched > h2:last-child');
-        // // End if game
-        // if (isEndOfGame()) {
-
-        //   endOfGame();
-        // }
-        // // a match occurred but not end of game
-        // else {
-        //   currentGameState.firstCardFlipped = undefined;
-        //   currentGameState.activeCards = 0;
-        // }
+        cardsMatch(card);
       }
       // No match occurred
       else {
@@ -152,7 +127,7 @@ function handleCardClick(evt) {
   }
 }
 
-
+// CARD HELPERS
 /**
  Create card either from saved game state or new game
  */
@@ -236,17 +211,11 @@ function flipCard(card) {
 function unFlipCard(card) {
   card.classList = 'card off';
   const img = card.firstChild;
-
   img.src = 'kindpng_3222475.png';
   // Every time a card is un-flipped, subtract 1 to activeCards
-
   currentGameState.activeCards--;
 }
 
-
-
-
-// CARD HELPERS
 
 // Check if card is off
 function isCardOff(card) {
@@ -254,7 +223,7 @@ function isCardOff(card) {
   return false;
 }
 // Run on matched cards
-function matchedCards(card) {
+function cardsMatch(card) {
   currentGameState.currentScore++;
   runningStats.totalMatched++;
   const first = document.getElementById(currentGameState.firstCardFlipped.id);
@@ -299,27 +268,18 @@ function endOfGame() {
   setScores(runningStats.largestBoard, '.largest-board > h2:last-child');
 }
 
-// Loaders for while fetching images
-function showLoader(message) {
-  const container = document.querySelector(".container");
-  const loadContainer = document.createElement("div");
-  loadContainer.classList = "loading";
-  loadContainer.innerText = message;
-  container.append(loadContainer);
-  const spinner = document.createElement("div");
-  spinner.classList = "load-spin";
-  loadContainer.append(spinner);
-}
-function removeLoader() {
-  document.querySelector(".loading").remove();
-}
 
-/** API functions to retrieve images from Chicago art institute */
+
+
+
+/** API FUNCTIONS to retrieve images from Chicago art institute */
 function getRandomPageNumber() {
   return Math.floor(Math.random() * 25 + 1);
 }
 
 async function fetchApiLinks(num, page) {
+  // get list of ids, object will have an api field, use that to get image id
+  // https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=api_link&limit=30
   try {
     const response = await fetch(
       `https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=api_link,pagination&limit=${num}&page=${page}`
@@ -339,13 +299,16 @@ async function fetchApiLinks(num, page) {
   }
 }
 async function fetchImageIds(array) {
+  // get list of image ids
+  // https://api.artic.edu/api/v1/artworks/102611/?fields=image_id
   let imgSrcs = [];
   for (const link of array) {
     try {
       const response = await fetch(`${link}/?fields=image_id`);
       const json = await response.json();
       const result = await json;
-
+      // get image url
+      // https://www.artic.edu/iiif/2/4dd78841-4237-9e49-76ec-136fbfa0b0a7/full/200,/0/default.jpg
       imgSrcs.push(
         `https://www.artic.edu/iiif/2/${result.data.image_id}/full/200,/0/default.jpg`
       );
@@ -358,7 +321,9 @@ async function fetchImageIds(array) {
   return imgSrcs;
 }
 
-// HELPERS
+
+
+// APP HELPERS
 function setStorage(string, data) {
   localStorage.setItem(string, JSON.stringify(data));
 }
@@ -385,12 +350,18 @@ function setScores(int, str) {
   ele.innerText = int;
 }
 
-// }
-// get list of ids, object will have an api field, use that to get image id
-// https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=api_link&limit=30
+// Loaders for while fetching images
+function showLoader(message) {
+  const container = document.querySelector(".container");
+  const loadContainer = document.createElement("div");
+  loadContainer.classList = "loading";
+  loadContainer.innerText = message;
+  container.append(loadContainer);
+  const spinner = document.createElement("div");
+  spinner.classList = "load-spin";
+  loadContainer.append(spinner);
+}
+function removeLoader() {
+  document.querySelector(".loading").remove();
+}
 
-// get list of image ids
-// https://api.artic.edu/api/v1/artworks/102611/?fields=image_id
-
-// get image url
-// https://www.artic.edu/iiif/2/4dd78841-4237-9e49-76ec-136fbfa0b0a7/full/200,/0/default.jpg
