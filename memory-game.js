@@ -23,8 +23,8 @@ let runningStats = {
 
 const form = document.querySelector("#start");
 // EVENT LISTENERS
-window.addEventListener("DOMContentLoaded", init);
-window.addEventListener("beforeunload", closingWindow);
+// window.addEventListener("DOMContentLoaded", init);
+// window.addEventListener("beforeunload", closingWindow);
 form.addEventListener("submit", handelFormSubmission);
 
 function init() {
@@ -83,21 +83,24 @@ function createCards(srcs) {
     setTimeout(() => {
       const card = document.createElement("div");
       card.id = i;
+      const img = document.createElement("img");
+
       if (uiState.length > 0) {
         const obj = uiState[i];
         card.classList = obj[i];
         if (card.classList.contains('match') || card.classList.contains('end-game')) {
-          const img = document.createElement("img");
-          img.addEventListener("error", (e) => {
-            e.target.src = "backup.png";
-          });
           img.src = currentGameState.imgSrcShuffled[i];
-          card.append(img);
         }
 
       } else {
-        card.classList = "card off";
+        img.src = 'kindpng_3222475.png';
+        card.classList = 'card off';
       }
+      img.addEventListener("error", (e) => {
+        e.target.src = "backup.png";
+      });
+
+      card.append(img);
       card.addEventListener("click", handleCardClick);
       gameBoard.append(card);
     }, PAINT_TIME * i);
@@ -132,12 +135,11 @@ function deleteCards() {
 
 function flipCard(card) {
   const index = card.id;
-  const img = document.createElement("img");
-  img.addEventListener("error", (e) => {
-    e.target.src = "backup.png";
-  });
+
+  const img = card.firstChild;
+
   img.src = currentGameState.imgSrcShuffled[index];
-  card.append(img);
+  // card.append(img);
   card.classList = 'card flip';
 
   // Every time a card is flipped, add 1 to activeCards
@@ -151,7 +153,8 @@ function flipCard(card) {
 function unFlipCard(card) {
   card.classList = 'card off';
   const img = card.firstChild;
-  card.removeChild(img);
+
+  img.src = 'kindpng_3222475.png';
   // Every time a card is un-flipped, subtract 1 to activeCards
   currentGameState.activeCards--;
 }
@@ -159,8 +162,9 @@ function unFlipCard(card) {
 /** Handle clicking on a card: this could be first-card or second-card. */
 
 function handleCardClick(evt) {
+  console.log(currentGameState);
+  const card = evt.currentTarget;
 
-  const card = evt.target;
   // if card is active or if active cards are 2 do not click
   if (!isCardOff(card) || currentGameState.activeCards === 2) {
     return;
@@ -168,6 +172,7 @@ function handleCardClick(evt) {
   // flip a card
   else {
     flipCard(card);
+
     //  is there a currentCard ie. is this the second card flipped
     if (currentGameState.activeCards === 2) {
 

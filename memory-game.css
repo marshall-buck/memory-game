@@ -34,7 +34,6 @@ h1 {
 
 #game {
   width: 90%;
-  /* min-height: 80vh; */
   display: flex;
   flex-flow: row wrap;
   margin: 0 auto;
@@ -49,7 +48,6 @@ h1 {
 .scroll {
   overflow-y: auto;
   width: 100vw;
-  /* height: inherit; */
 }
 .card {
   width: 100px;
@@ -66,21 +64,15 @@ h1 {
   object-fit: cover;
   height: 140px;
   width: 100px;
-}
-
-.card p {
-  font-size: 72px;
   user-select: none;
+  transition: all 1s;
 }
 
-.off {
+.off img {
   background-color: rgb(147, 133, 53);
-  background-image: url(kindpng_3222475.png);
-  background-size: 50%;
-  background-repeat: no-repeat;
-  background-position: center;
-
-  /* transition: opacity 0.4s ease-in-out; */
+  animation: un-flip 0.4s ease-in-out;
+  object-fit: contain;
+  padding: 1rem;
 }
 .dashboard {
   display: flex;
@@ -221,7 +213,18 @@ button:hover {
     transform: scaleX(0.1);
   }
   100% {
-    /* opacity: 1; */
+    transform: scaleX(0);
+  }
+}
+@keyframes un-flip {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scaleX(0.1);
+  }
+  100% {
     transform: scaleX(0);
   }
 }
