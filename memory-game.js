@@ -27,7 +27,7 @@ window.addEventListener("DOMContentLoaded", init);
 window.addEventListener("beforeunload", closingWindow);
 
 function init() {
-
+  console.log('init');
   // no game state in localStorage, so set it
   if (!localStorage.getItem("currentGameState")) {
     setStorage("currentGameState", currentGameState);
@@ -89,7 +89,7 @@ function createCards(srcs) {
       if (uiState.length > 0) {
         const obj = uiState[i];
         card.classList = obj[i];
-        if (card.classList.contains('match')) {
+        if (card.classList.contains('match') || card.classList.contains('end-game')) {
           const img = document.createElement("img");
           img.addEventListener("error", (e) => {
             e.target.src = "backup.png";
@@ -141,21 +141,23 @@ function flipCard(card) {
   });
   img.src = currentGameState.imgSrcShuffled[index];
   card.append(img);
-  card.classList.toggle("off");
-  card.classList.toggle("anim");
+  // card.classList.toggle("off");
+  // card.classList.toggle("flip");
+  card.classList = 'card flip';
+
   // Every time a card is flipped, add 1 to activeCards
   currentGameState.activeCards++;
 }
 
 /** Flip a card face-down.
- the only time the card is un-flipped dis when there is no match
+ the only time the card is un-flipped is when there is no match
  */
 
 function unFlipCard(card) {
-  card.classList.toggle("off");
-  const p = card.firstChild;
-  card.removeChild(p);
-  card.classList.toggle("anim");
+  card.classList = 'card off';
+  const img = card.firstChild;
+  card.removeChild(img);
+  // Every time a card is un-flipped, subtract 1 to activeCards
   currentGameState.activeCards--;
 }
 
@@ -173,19 +175,20 @@ function handleCardClick(evt) {
     flipCard(card);
     //  is there a currentCard ie. is this the second card flipped
     if (currentGameState.activeCards === 2) {
-      // a match occurred
-      if (
+
+      if (   // a match occurred
         currentGameState.imgSrcShuffled[
         currentGameState.firstCardFlipped.id
         ] === currentGameState.imgSrcShuffled[card.id]
       ) {
         currentGameState.currentScore++;
         runningStats.totalMatched++;
-        card.classList.add("match");
-        card.classList.toggle("anim");
+
+
         const first = document.getElementById(currentGameState.firstCardFlipped.id);
-        first.classList.add("match");
-        card.classList.toggle("anim");
+        card.classList = 'card match';
+        first.classList = 'card match';
+
         currentGameState.firstCardFlipped = undefined;
         setScores(currentGameState.currentScore, '.current-score > h2:last-child');
         setScores(runningStats.totalMatched, '.total-matched > h2:last-child');
@@ -193,25 +196,17 @@ function handleCardClick(evt) {
         if (isEndOfGame()) {
           const cards = document.querySelectorAll('.card');
           for (const card of cards) {
-            card.classList.toggle('end-game');
-
+            card.classList = 'end-game card';
           }
-
           const boardPairs = currentGameState.imgSrcShuffled.length / 2;
           if (boardPairs > runningStats.largestBoard) {
             runningStats.largestBoard = boardPairs;
           }
           if (currentGameState.currentScore > runningStats.highScore) {
             runningStats.highScore = currentGameState.currentScore;
-            setScores(runningStats.highScore, 'high-score  > h2:last-child');
+            setScores(runningStats.highScore, '.high-score > h2:last-child');
           }
-          setScores(runningStats.largestBoard, 'largest-board  > h2:last-child');
-
-
-          // setTimeout(() => {
-
-
-          // }, 500);
+          setScores(runningStats.largestBoard, '.largest-board > h2:last-child');
         }
         // a match occurred but not end of game
         else {
@@ -221,6 +216,7 @@ function handleCardClick(evt) {
       }
       // No match occurred
       else {
+
         setTimeout(() => {
           unFlipCard(card);
           unFlipCard(currentGameState.firstCardFlipped);
@@ -250,6 +246,7 @@ async function handelFormSubmission(e) {
   const page = getRandomPageNumber();
 
   const apiLinks = await fetchApiLinks(num, page);
+
 
   const imgSrcs = await fetchImageIds(apiLinks);
   currentGameState.imgSrcShuffled = shuffle([...imgSrcs, ...imgSrcs]);
@@ -299,6 +296,7 @@ async function fetchApiLinks(num, page) {
     const json = await response.json();
     const results = await json;
     const apiLinks = [];
+    // console.log(results);
     for (const data of results.data) {
       apiLinks.push(data.api_link);
     }
