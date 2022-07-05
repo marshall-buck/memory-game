@@ -6,46 +6,58 @@
 
 const FOUND_MATCH_WAIT_MSECS = 1000;
 const PAINT_TIME = 60;
+let currentGameState = {
+  uiState: [],
+  imgSrcShuffled: [],
+  currentScore: 0,
+  firstCardFlipped: undefined,
+  activeCards: 0,
+};
+
+let runningStats = {
+  largestBoard: 0,
+  totalMatched: 0,
+  highScore: 0,
+};
 
 
-let currentScore = 0;
-let imgSrcShuffled;
+const form = document.querySelector("#start");
 
-let firstCardFlipped;
-let activeCards = 0;
-
-const form = document.querySelector('#start');
-
-document.addEventListener('DOMContentLoaded', init);
-window.addEventListener('beforeunload', closingWindow);
-
+window.addEventListener("DOMContentLoaded", init);
+window.addEventListener("beforeunload", closingWindow);
 
 function init() {
-  if (!localStorage.getItem('currentGameState')) {
-    setStorage('currentGameState', {
-      uiState: [],
-      imgSrcShuffled: [],
-      currentScore: 0,
-      firstCardFlipped: undefined,
-      activeCards: 0
-    });
-    if (!localStorage.getItem('runningStats')) {
-      setStorage('runningStats', {
-        largestBoardComplete: 0,
-        totalCardsFlipped: 0,
-        highestScore: 0
-      });
-    }
-  } else {
-    const currentGameState = JSON.parse(localStorage.getItem('currentGameState'));
-    console.log(currentGameState);
+
+  // no game state in localStorage, so set it
+  if (!localStorage.getItem("currentGameState")) {
+    setStorage("currentGameState", currentGameState);
+  } //there is localSTorage so load cards from previous game state
+  else {
+    currentGameState = JSON.parse(localStorage.getItem("currentGameState"));
+    createCards(currentGameState.imgSrcShuffled);
+
   }
+  // no running stats in local
+  if
+    (!localStorage.getItem("runningStats")) {
+    setStorage("runningStats", runningStats);
+  } else {
+    runningStats = JSON.parse(localStorage.getItem("runningStats"));
+  }
+  //
+
+
+  // whether there is localStorage or not, scores need to be added
+  setScores(runningStats.highScore, ".high-score > h2:last-child");
+  setScores(currentGameState.currentScore, '.current-score > h2:last-child');
+  setScores(runningStats.totalMatched, '.total-matched > h2:last-child');
+  setScores(runningStats.largestBoard, '.largest-board > h2:last-child');
 }
 // /save game data before window closes
 function closingWindow() {
   const currentUi = () => {
     let out = [];
-    const cards = document.querySelectorAll('.card');
+    const cards = document.querySelectorAll(".card");
     for (let card of cards) {
       let obj = {};
       obj[card.id] = card.className;
@@ -53,18 +65,14 @@ function closingWindow() {
     }
     return out;
   };
+  currentGameState.uiState = currentUi();
 
-  localStorage.setItem('currentGameState', JSON.stringify({
-    uiState: currentUi(),
-    imgSrcShuffled: imgSrcShuffled,
-    currentScore: currentScore,
-    firstCardFlipped: firstCardFlipped,
-    activeCards: activeCards
-  }));
+  setStorage("currentGameState", currentGameState);
+  setStorage("runningStats", runningStats);
+
 }
 
-form.addEventListener('submit', handelFormSubmission);
-
+form.addEventListener("submit", handelFormSubmission);
 
 /* Create card for every src in srcs array
     and  paint to DOM while adding event listener,
@@ -72,21 +80,44 @@ form.addEventListener('submit', handelFormSubmission);
  */
 
 function createCards(srcs) {
-  const gameBoard = document.getElementById('game');
+  const gameBoard = document.getElementById("game");
+  const uiState = currentGameState.uiState;
   for (let i = 0; i < srcs.length; i++) {
     setTimeout(() => {
-      const card = document.createElement('div');
-      card.classList = 'card off';
+      const card = document.createElement("div");
       card.id = i;
-      card.addEventListener('click', handleCardClick);
+      if (uiState.length > 0) {
+        const obj = uiState[i];
+        card.classList = obj[i];
+        if (card.classList.contains('match')) {
+          const img = document.createElement("img");
+          img.addEventListener("error", (e) => {
+            e.target.src = "backup.png";
+          });
+          img.src = currentGameState.imgSrcShuffled[i];
+          card.append(img);
+        }
+
+      } else {
+        card.classList = "card off";
+      }
+      card.addEventListener("click", handleCardClick);
       gameBoard.append(card);
     }, PAINT_TIME * i);
   }
-  gameBoard.style.opacity = '1';
+  gameBoard.style.opacity = "1";
 }
 // Delete cards on game restart
 function deleteCards() {
-  const cards = document.querySelectorAll('.card');
+  const cards = document.querySelectorAll(".card");
+  currentGameState = {
+    uiState: [],
+    imgSrcShuffled: [],
+    currentScore: 0,
+    firstCardFlipped: undefined,
+    activeCards: 0,
+  };
+  setStorage('currentGameState', currentGameState);
   let count = 0;
   for (let card of cards) {
     count++;
@@ -94,8 +125,7 @@ function deleteCards() {
       card.remove();
     }, PAINT_TIME * count);
   }
-
-  imgSrcShuffled = [];
+  setScores(currentGameState.currentScore, '.current-score > h2:last-child');
 
 }
 
@@ -105,18 +135,16 @@ function deleteCards() {
 
 function flipCard(card) {
   const index = card.id;
-  const img = document.createElement('img');
-  img.addEventListener('error', (e) => {
-    e.target.src = 'backup.png';
+  const img = document.createElement("img");
+  img.addEventListener("error", (e) => {
+    e.target.src = "backup.png";
   });
-  img.src = imgSrcShuffled[index];
-
+  img.src = currentGameState.imgSrcShuffled[index];
   card.append(img);
-
-  card.classList.toggle('off');
-  card.classList.toggle('anim');
+  card.classList.toggle("off");
+  card.classList.toggle("anim");
   // Every time a card is flipped, add 1 to activeCards
-  activeCards++;
+  currentGameState.activeCards++;
 }
 
 /** Flip a card face-down.
@@ -124,65 +152,90 @@ function flipCard(card) {
  */
 
 function unFlipCard(card) {
-
-  card.classList.toggle('off');
+  card.classList.toggle("off");
   const p = card.firstChild;
-
   card.removeChild(p);
-  card.classList.toggle('anim');
+  card.classList.toggle("anim");
+  currentGameState.activeCards--;
 }
 
 /** Handle clicking on a card: this could be first-card or second-card. */
 
 function handleCardClick(evt) {
+
   const card = evt.target;
   // if card is active or if active cards are 2 do not click
-  if (!isCardOff(card) || activeCards === 2) {
+  if (!isCardOff(card) || currentGameState.activeCards === 2) {
     return;
   }
   // flip a card
   else {
     flipCard(card);
     //  is there a currentCard ie. is this the second card flipped
-    if (activeCards === 2) {
+    if (currentGameState.activeCards === 2) {
       // a match occurred
-      if (imgSrcShuffled[firstCardFlipped.id] === imgSrcShuffled[card.id]) {
-        currentScore++;
-        card.classList.add('match');
-        card.classList.toggle('anim');
-        const first = document.getElementById(firstCardFlipped.id);
-        first.classList.add('match');
-        card.classList.toggle('anim');
-        firstCardFlipped = undefined;
+      if (
+        currentGameState.imgSrcShuffled[
+        currentGameState.firstCardFlipped.id
+        ] === currentGameState.imgSrcShuffled[card.id]
+      ) {
+        currentGameState.currentScore++;
+        runningStats.totalMatched++;
+        card.classList.add("match");
+        card.classList.toggle("anim");
+        const first = document.getElementById(currentGameState.firstCardFlipped.id);
+        first.classList.add("match");
+        card.classList.toggle("anim");
+        currentGameState.firstCardFlipped = undefined;
+        setScores(currentGameState.currentScore, '.current-score > h2:last-child');
+        setScores(runningStats.totalMatched, '.total-matched > h2:last-child');
         // End if game
         if (isEndOfGame()) {
-          setTimeout(() => {
-            console.log('end of game');
-            activeCards = 0;
-            firstCardFlipped = undefined;
-          }, 500);
+          const cards = document.querySelectorAll('.card');
+          for (const card of cards) {
+            card.classList.toggle('end-game');
 
+          }
+
+          const boardPairs = currentGameState.imgSrcShuffled.length / 2;
+          if (boardPairs > runningStats.largestBoard) {
+            runningStats.largestBoard = boardPairs;
+          }
+          if (currentGameState.currentScore > runningStats.highScore) {
+            runningStats.highScore = currentGameState.currentScore;
+            setScores(runningStats.highScore, 'high-score  > h2:last-child');
+          }
+          setScores(runningStats.largestBoard, 'largest-board  > h2:last-child');
+
+
+          // setTimeout(() => {
+
+
+          // }, 500);
         }
         // a match occurred but not end of game
-        else { firstCardFlipped = undefined; activeCards = 0; }
+        else {
+          currentGameState.firstCardFlipped = undefined;
+          currentGameState.activeCards = 0;
+        }
       }
       // No match occurred
       else {
         setTimeout(() => {
           unFlipCard(card);
-          unFlipCard(firstCardFlipped);
-          firstCardFlipped = undefined;
-          activeCards = 0;
+          unFlipCard(currentGameState.firstCardFlipped);
+          currentGameState.firstCardFlipped = undefined;
+
         }, 1000);
       }
     }
     // This is the first card flipped
     else {
-      firstCardFlipped = card;
+      currentGameState.firstCardFlipped = card;
+
     }
   }
 }
-
 
 /** Handle form submission and get game data */
 async function handelFormSubmission(e) {
@@ -190,56 +243,47 @@ async function handelFormSubmission(e) {
   deleteCards();
   const num = form.elements.num.value;
   if (isNaN(num) || num < 1 || num > 30) {
-    window.alert('Please enter a number between 1 and 30');
+    window.alert("Please enter a number between 1 and 30");
     return;
   }
-  showLoader('Please wait while images are retrieved');
+  showLoader("Please wait while images are retrieved");
   const page = getRandomPageNumber();
 
   const apiLinks = await fetchApiLinks(num, page);
 
   const imgSrcs = await fetchImageIds(apiLinks);
-  imgSrcShuffled = shuffle([...imgSrcs, ...imgSrcs]);
-  createCards(imgSrcShuffled);
-  writeToGameState('imgSrcShuffled', imgSrcShuffled);
-  form.lastElementChild.innerText = 'Restart';
+  currentGameState.imgSrcShuffled = shuffle([...imgSrcs, ...imgSrcs]);
+  createCards(currentGameState.imgSrcShuffled);
+
+  form.lastElementChild.innerText = "Restart";
   form.reset();
-
-
-
-
-
-
 }
 // Card helpers
 function isCardOff(card) {
-  if (card.classList.contains('off')) return true;
+  if (card.classList.contains("off")) return true;
   return false;
 }
 
-
 function isEndOfGame() {
-  for (let card of document.querySelectorAll('.card')) {
+  for (let card of document.querySelectorAll(".card")) {
     if (isCardOff(card)) return false;
   }
   return true;
 }
 
-
-
 // Loaders for while fetching images
 function showLoader(message) {
-  const container = document.querySelector('.container');
-  const loadContainer = document.createElement('div');
-  loadContainer.classList = 'loading';
+  const container = document.querySelector(".container");
+  const loadContainer = document.createElement("div");
+  loadContainer.classList = "loading";
   loadContainer.innerText = message;
   container.append(loadContainer);
-  const spinner = document.createElement('div');
-  spinner.classList = 'load-spin';
+  const spinner = document.createElement("div");
+  spinner.classList = "load-spin";
   loadContainer.append(spinner);
 }
 function removeLoader() {
-  document.querySelector('.loading').remove();
+  document.querySelector(".loading").remove();
 }
 
 /** API functions to retrieve images from Chicago art institute */
@@ -249,7 +293,9 @@ function getRandomPageNumber() {
 
 async function fetchApiLinks(num, page) {
   try {
-    const response = await fetch(`https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=api_link,pagination&limit=${num}&page=${page}`);
+    const response = await fetch(
+      `https://api.artic.edu/api/v1/artworks/search?query[term][is_public_domain]=true&fields=api_link,pagination&limit=${num}&page=${page}`
+    );
     const json = await response.json();
     const results = await json;
     const apiLinks = [];
@@ -259,11 +305,8 @@ async function fetchApiLinks(num, page) {
 
     return apiLinks;
   } catch (error) {
-
     console.log(error);
   }
-
-
 }
 async function fetchImageIds(array) {
   let imgSrcs = [];
@@ -273,7 +316,9 @@ async function fetchImageIds(array) {
       const json = await response.json();
       const result = await json;
 
-      imgSrcs.push(`https://www.artic.edu/iiif/2/${result.data.image_id}/full/200,/0/default.jpg`);
+      imgSrcs.push(
+        `https://www.artic.edu/iiif/2/${result.data.image_id}/full/200,/0/default.jpg`
+      );
     } catch (error) {
       console.log(error);
     }
@@ -282,22 +327,10 @@ async function fetchImageIds(array) {
   return imgSrcs;
 }
 
-// LOCAL STORAGE HELPERS
-
-function writeToGameState(key, value) {
-  const data = JSON.parse(localStorage.getItem('currentGameState'));
-  data[key] = value;
-  localStorage.setItem('currentGameState', JSON.stringify(data));
-}
-
-function readFromGameState(key) {
-  const data = localStorage.getItem(JSON.parse('currentGameState'));
-  return data[key];
-}
+// HELPERS
 function setStorage(string, data) {
   localStorage.setItem(string, JSON.stringify(data));
 }
-
 
 /** Shuffle array items in-place and return shuffled array. */
 function shuffle(items) {
@@ -314,6 +347,11 @@ function shuffle(items) {
   }
 
   return items;
+}
+
+function setScores(int, str) {
+  const ele = document.querySelector(str);
+  ele.innerText = int;
 }
 
 // }

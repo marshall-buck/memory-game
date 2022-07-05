@@ -193,6 +193,23 @@ button:hover {
   background-color: burlywood;
   padding: 2rem;
 }
+.total-matched {
+  position: absolute;
+  display: flex;
+  justify-items: start;
+  align-items: center;
+  gap: 1rem;
+  bottom: 10px;
+  left: 10px;
+  z-index: 10;
+  height: 40px;
+  background-color: burlywood;
+  padding: 2rem;
+}
+
+.end-game {
+  animation: spin 0.4s linear 2;
+}
 
 @keyframes flip {
   0% {
