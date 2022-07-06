@@ -34,6 +34,7 @@ h1 {
 
 #game {
   width: 90%;
+  height: 100%;
   display: flex;
   flex-flow: row wrap;
   margin: 0 auto;
@@ -46,6 +47,7 @@ h1 {
 .scroll {
   overflow-y: auto;
   width: 100vw;
+
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
