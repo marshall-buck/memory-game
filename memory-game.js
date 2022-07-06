@@ -11,7 +11,7 @@ let currentGameState = {
 };
 
 let runningStats = {
-  largestBoard: 0,
+
   totalMatched: 0,
   highScore: 0,
 };
@@ -50,7 +50,7 @@ function init() {
   setScores(runningStats.highScore, ".high-score > h2:last-child");
   setScores(currentGameState.currentScore, '.current-score > h2:last-child');
   setScores(runningStats.totalMatched, '.total-matched > h2:last-child');
-  setScores(runningStats.largestBoard, '.largest-board > h2:last-child');
+
 }
 // /save game data before window closes
 function closingWindow() {
@@ -214,6 +214,7 @@ function unFlipCard(card) {
   img.src = 'kindpng_3222475.png';
   // Every time a card is un-flipped, subtract 1 to activeCards
   currentGameState.activeCards--;
+
 }
 
 
@@ -257,15 +258,13 @@ function endOfGame() {
   for (const card of cards) {
     card.classList = 'end-game card';
   }
-  const boardPairs = currentGameState.imgSrcShuffled.length / 2;
-  if (boardPairs > runningStats.largestBoard) {
-    runningStats.largestBoard = boardPairs;
-  }
+
+
   if (currentGameState.currentScore > runningStats.highScore) {
     runningStats.highScore = currentGameState.currentScore;
     setScores(runningStats.highScore, '.high-score > h2:last-child');
   }
-  setScores(runningStats.largestBoard, '.largest-board > h2:last-child');
+
 }
 
 
