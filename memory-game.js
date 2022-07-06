@@ -84,7 +84,7 @@ async function handelFormSubmission(e) {
   const imgSrcs = await fetchImageIds(apiLinks);
   currentGameState.imgSrcShuffled = shuffle([...imgSrcs, ...imgSrcs]);
   createCards(currentGameState.imgSrcShuffled);
-  form.lastElementChild.innerText = "Restart";
+
   form.reset();
 }
 
@@ -164,6 +164,7 @@ function createCards(srcs) {
     }, PAINT_TIME * i);
   }
   gameBoard.style.opacity = "1";
+  form.lastElementChild.innerText = "New Game";
 }
 // Delete cards on game restart, reset local game state, reset current score to 0
 function deleteCards() {
